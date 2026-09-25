@@ -5,7 +5,21 @@
 # IMPORT
 # ============================================================================
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+
+# CONSTANTS IMPORT
+from atm_sim.constants.constants import (
+    DEFAULT_AIRPORT,
+    DEFAULT_MAX_FLIGHTS,
+    DEFAULT_SPEED_INDEX,
+    DEFAULT_TICK_SECONDS,
+    IDLE_SLEEP_SECONDS,
+    MIN_RENDER_INTERVAL_SECONDS,
+    PAUSE_KEY,
+    QUIT_KEY,
+    SPEED_DOWN_KEY,
+    SPEED_UP_KEY,
+)
 
 # ENTITIES IMPORT
 from atm_sim.entities.clock_entity import SimClockEntity, resolve_speed_index
@@ -13,26 +27,12 @@ from atm_sim.entities.simulation_engine_entity import SimulationEngineEntity
 
 # ENUMS IMPORTS
 from atm_sim.enums.simulation_status_enum import SimulationStatusEnum
-
-# SERVICES IMPORT
-from atm_sim.services.opensky_service import OpenSkyService
 from atm_sim.services.airport_service import AirportService
 from atm_sim.services.console_renderer_service import ConsoleRendererService
 from atm_sim.services.keyboard_listener_service import KeyboardListenerService
 
-# CONSTANTS IMPORT
-from atm_sim.constants.constants import (
-    DEFAULT_AIRPORT,
-    DEFAULT_MAX_FLIGHTS,
-    DEFAULT_TICK_SECONDS,
-    DEFAULT_SPEED_INDEX,
-    IDLE_SLEEP_SECONDS,
-    PAUSE_KEY,
-    QUIT_KEY,
-    SPEED_UP_KEY,
-    SPEED_DOWN_KEY,
-    MIN_RENDER_INTERVAL_SECONDS
-)
+# SERVICES IMPORT
+from atm_sim.services.opensky_service import OpenSkyService
 
 
 # ============================================================================
@@ -67,7 +67,7 @@ class SimulationService:
         end: datetime | None = None,
         max_flights: int | None = None,
         tick_seconds: float | None = None,
-        speed_factor: float | None = None
+        speed_factor: float | None = None,
     ) -> None:
         """
         """
@@ -92,7 +92,7 @@ class SimulationService:
             raise ValueError(f"start ({resolved_begin}) must be before end ({resolved_end})")
 
         selection_label = self._format_selection_label(
-            resolved_airports, origins, destinations, callsigns, icao24s
+            resolved_airports, origins, destinations, callsigns, icao24s,
         )
 
         print(f"Fetching {selection_label} between {resolved_begin} and {resolved_end}...")
@@ -144,7 +144,7 @@ class SimulationService:
 
         if modes_used > 1:
             raise ValueError(
-                "Only one selection mode allowed: --airport, --origin/--destination, --callsign, or --icao24"
+                "Only one selection mode allowed: --airport, --origin/--destination, --callsign, or --icao24",
             )
 
     def _format_selection_label(
@@ -203,7 +203,7 @@ class SimulationService:
         begin: datetime,
         end: datetime,
         tick_seconds: float,
-        speed_index: int
+        speed_index: int,
     ) -> None:
         """
         """
@@ -229,53 +229,100 @@ class SimulationService:
                 if key == QUIT_KEY:
                     break
 
-                if key == PAUSE_KEY:
-                    if engine.clock.is_paused():
-                        engine.clock.resume()
-                    else:
-                        engine.clock.pause()
+                SimulationService._handle_key_input(key, engine)
 
-                if key == SPEED_UP_KEY:
-                    engine.clock.increase_speed()
+                status = SimulationService._advance_and_get_status(engine, total_duration_seconds)
 
-                if key == SPEED_DOWN_KEY:
-                    engine.clock.decrease_speed()
-
-                status = engine.get_status(total_duration_seconds)
-
-                if status == SimulationStatusEnum.RUNNING:
-                    engine.tick()
-                    status = engine.get_status(total_duration_seconds)
-
-                now = time.monotonic()
-                should_render = (
-                        status == SimulationStatusEnum.COMPLETE
-                        or (now - last_render_time) >= MIN_RENDER_INTERVAL_SECONDS
+                last_render_time = SimulationService._maybe_render(
+                    engine = engine,
+                    airport_label = airport_label,
+                    begin = begin,
+                    status = status,
+                    last_render_time = last_render_time,
                 )
-
-                if should_render:
-                    ConsoleRendererService.render(engine, airport_label, begin, status)
-                    last_render_time = now
 
                 if status == SimulationStatusEnum.COMPLETE:
                     break
 
-                if status == SimulationStatusEnum.RUNNING:
-                    time.sleep(engine.clock.tick_seconds / abs(engine.clock.speed_factor))
-                else:
-                    time.sleep(IDLE_SLEEP_SECONDS)
+                SimulationService._sleep_for_status(status, engine)
         finally:
             listener.stop()
 
         print("\nSimulation stopped.")
 
     @staticmethod
+    def _handle_key_input(
+            key: str | None,
+            engine: SimulationEngineEntity,
+    ) -> None:
+        """
+        """
+        if key == PAUSE_KEY:
+            if engine.clock.is_paused():
+                engine.clock.resume()
+            else:
+                engine.clock.pause()
+        elif key == SPEED_UP_KEY:
+            engine.clock.increase_speed()
+        elif key == SPEED_DOWN_KEY:
+            engine.clock.decrease_speed()
+
+    @staticmethod
+    def _advance_and_get_status(
+            engine: SimulationEngineEntity,
+            total_duration_seconds: float,
+    ) -> SimulationStatusEnum:
+        """
+        """
+        status = engine.get_status(total_duration_seconds)
+
+        if status == SimulationStatusEnum.RUNNING:
+            engine.tick()
+            status = engine.get_status(total_duration_seconds)
+
+        return status
+
+    @staticmethod
+    def _maybe_render(
+            engine: SimulationEngineEntity,
+            airport_label: str,
+            begin: datetime,
+            status: SimulationStatusEnum,
+            last_render_time: float,
+    ) -> float:
+        """
+        """
+        now = time.monotonic()
+        should_render = (
+                status == SimulationStatusEnum.COMPLETE
+                or (now - last_render_time) >= MIN_RENDER_INTERVAL_SECONDS
+        )
+
+        if not should_render:
+            return last_render_time
+
+        ConsoleRendererService.render(engine, airport_label, begin, status)
+        return now
+
+    @staticmethod
+    def _sleep_for_status(
+            status: SimulationStatusEnum,
+            engine: SimulationEngineEntity,
+    ) -> None:
+        """
+        """
+        if status == SimulationStatusEnum.RUNNING:
+            time.sleep(engine.clock.tick_seconds / abs(engine.clock.speed_factor))
+        else:
+            time.sleep(IDLE_SLEEP_SECONDS)
+
+    @staticmethod
     def _compute_yesterday_utc_range() -> tuple[datetime, datetime]:
         """
         """
-        now_utc = datetime.now(timezone.utc)
+        now_utc = datetime.now(UTC)
         today_midnight = datetime(
-            now_utc.year, now_utc.month, now_utc.day, tzinfo = timezone.utc
+            now_utc.year, now_utc.month, now_utc.day, tzinfo = UTC,
         )
         yesterday_start = today_midnight - timedelta(days = 1)
         yesterday_end = today_midnight

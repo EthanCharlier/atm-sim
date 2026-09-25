@@ -10,6 +10,7 @@ import pandas as pd
 from typing import cast
 from datetime import datetime
 from pyopensky.trino import Trino
+from trino.exceptions import Error as TrinoError
 
 # ENTITIES IMPORT
 from atm_sim.entities.airport_entity import AirportEntity
@@ -223,8 +224,8 @@ class OpenSkyService:
         """
         try:
             flightlist_df = self.trino.flightlist(begin, end, **query_kwargs)
-        except Exception as error:
-            logger.error("flightlist query failed for %s: %s", query_kwargs, error)
+        except (TrinoError, OSError):
+            logger.exception("flightlist query failed for %s", query_kwargs)
             return None
 
         if flightlist_df is None or flightlist_df.empty:
@@ -263,9 +264,9 @@ class OpenSkyService:
         overall_end = flights_df["lastseen"].apply(_to_unix_seconds).max()
 
         try:
-            history_df = self.trino.history(overall_begin, overall_end, icao24 = icao24_list)
-        except Exception as error:
-            logger.error("history query failed for %s: %s", icao24_list, error)
+            history_df = self.trino.history(overall_begin, overall_end, icao24=icao24_list)
+        except (TrinoError, OSError):
+            logger.exception("history query failed for %s", icao24_list)
             return None
 
         if history_df is None or history_df.empty:
