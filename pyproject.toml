@@ -5,11 +5,13 @@ build-backend = "hatchling.build"
 [project]
 name = "ATM"
 version = "0.01"
-description = "Local ATM simulation POC"
+description = "Local ATM (Air Traffic Management) simulation POC based on OpenSky historical data"
 readme = "README.md"
 requires-python = ">=3.14"
 license = { text = "MIT" }
-authors = [{ name = "Ethan CHARLIER" }]
+authors = [
+    { name = "Ethan Charlier" }
+]
 
 dependencies = [
     "pyopensky>=2.15",
@@ -33,17 +35,73 @@ atm-sim = "atm_sim.main:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/atm_sim"]
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "--cov=atm_sim --cov-report=term-missing"
-
+# ============================================================================
+# RUFF
+# ============================================================================
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py314"
+src = ["src"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B"]
+select = ["ALL"]
 
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-args = 8
+max-branches = 12
+max-returns = 6
+max-statements = 50
+
+[tool.ruff.lint.isort]
+known-first-party = ["atm_sim"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+# ============================================================================
+# MYPY
+# ============================================================================
 [tool.mypy]
 python_version = "3.14"
+mypy_path = "src"
 strict = true
+warn_unreachable = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+no_implicit_optional = true
+check_untyped_defs = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = ["pyopensky.*", "airportsdata.*"]
+ignore_missing_imports = true
+
+# ============================================================================
+# PYTEST
+# ============================================================================
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra -q"
+
+[tool.coverage.run]
+source = ["src/atm_sim"]
+omit = ["*/__init__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]
