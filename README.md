@@ -200,3 +200,9 @@ These are data limitations, not bugs:
 55. **Automated versioning and changelog**
 56. **Video/GIF generation** of a simulation
 57. **Overview mini-map**
+
+## Attribution
+
+This is a personal, non-commercial research/learning project using flight
+and aircraft data from [The OpenSky Network](https://opensky-network.org/).
+See [NOTICE.md](NOTICE.md) for the required citation and license scope.
