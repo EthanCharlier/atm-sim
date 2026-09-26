@@ -11,6 +11,9 @@ from datetime import UTC, datetime
 from dotenv import load_dotenv
 from pyopensky.trino import Trino
 
+# CONSTANTS IMPORT
+from atm_sim.constants.constants import LOG_FILE_PATH
+
 # SERVICES IMPORT
 from atm_sim.services.airport_service import AirportService
 from atm_sim.services.opensky_service import OpenSkyService
@@ -130,12 +133,19 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> None:
+def _configure_logging() -> None:
     """ """
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        filename=LOG_FILE_PATH,
+        filemode="a",
     )
+
+
+def main() -> None:
+    """ """
+    _configure_logging()
 
     # ---
 

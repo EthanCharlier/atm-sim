@@ -3,6 +3,7 @@
 # ============================================================================
 # IMPORT
 # ============================================================================
+from pathlib import Path
 
 # ENUMS IMPORTS
 from atm_sim.enums.aircraft_status_enum import AircraftStatusEnum
@@ -54,3 +55,8 @@ PAUSE_KEY: str = " "
 QUIT_KEY: str = "\x1b"
 SPEED_UP_KEY: str = "+"
 SPEED_DOWN_KEY: str = "-"
+
+# ----------------------------------------------------------------------------
+# LOG
+# ----------------------------------------------------------------------------
+LOG_FILE_PATH = Path("atm-sim.log")
