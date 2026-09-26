@@ -1,13 +1,11 @@
-"""
-"""
+""" """
 
 
 # ============================================================================
 # CLASS
 # ============================================================================
 class TrajectoryPointEntity:
-    """
-    """
+    """ """
 
     def __init__(
         self,
@@ -19,8 +17,7 @@ class TrajectoryPointEntity:
         vertical_rate_ft_per_min: float,
         on_ground: bool,
     ) -> None:
-        """
-        """
+        """ """
         self.time_offset_seconds: float = time_offset_seconds
         self.lat: float = lat
         self.lon: float = lon

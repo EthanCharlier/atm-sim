@@ -1,10 +1,21 @@
-"""
-"""
+""" """
 
 # ============================================================================
 # IMPORT
 # ============================================================================
 from datetime import datetime, timedelta
+
+# CONSTANTS IMPORT
+from atm_sim.constants.constants import (
+    CLEAR_LINE,
+    COLOR_ARRIVED,
+    COLOR_IN_FLIGHT,
+    COLOR_RESET,
+    COLOR_WAITING,
+    CURSOR_HOME,
+    STATUS_COLORS,
+    STATUS_SORT_ORDER,
+)
 
 # ENTITIES IMPORT
 from atm_sim.entities.simulation_engine_entity import SimulationEngineEntity
@@ -13,31 +24,18 @@ from atm_sim.entities.simulation_engine_entity import SimulationEngineEntity
 from atm_sim.enums.aircraft_status_enum import AircraftStatusEnum
 from atm_sim.enums.simulation_status_enum import SimulationStatusEnum
 
-# CONSTANTS IMPORT
-from atm_sim.constants.constants import (
-    CURSOR_HOME,
-    CLEAR_LINE,
-    COLOR_RESET,
-    COLOR_WAITING,
-    COLOR_IN_FLIGHT,
-    COLOR_ARRIVED,
-    STATUS_SORT_ORDER,
-    STATUS_COLORS
-)
 
 # ============================================================================
 # CLASS
 # ============================================================================
 class ConsoleRendererService:
-    """
-    """
+    """ """
 
     @staticmethod
     def reserve_space(
         fleet_size: int,
     ) -> None:
-        """
-        """
+        """ """
         print("\n" * (fleet_size + 7))
 
     @staticmethod
@@ -47,9 +45,8 @@ class ConsoleRendererService:
         begin: datetime,
         status: SimulationStatusEnum,
     ) -> None:
-        """
-        """
-        current_utc = begin + timedelta(seconds = engine.clock.sim_time_elapsed)
+        """ """
+        current_utc = begin + timedelta(seconds=engine.clock.sim_time_elapsed)
 
         counts: dict[AircraftStatusEnum, int] = {
             AircraftStatusEnum.WAITING: 0,
@@ -62,7 +59,7 @@ class ConsoleRendererService:
 
         sorted_fleet = sorted(
             engine.fleet,
-            key = lambda a: (
+            key=lambda a: (
                 STATUS_SORT_ORDER[a.status],
                 -a.get_progress_percent(engine.clock.sim_time_elapsed),
             ),
@@ -91,7 +88,7 @@ class ConsoleRendererService:
                 f"{aircraft.current_lat:>9.4f} {aircraft.current_lon:>10.4f} "
                 f"{aircraft.current_altitude_ft:>9.0f} "
                 f"{aircraft.current_ground_speed_kmh:>13.0f} "
-                f"{aircraft.current_vertical_rate_ft_per_min:>+15.0f}"
+                f"{aircraft.current_vertical_rate_ft_per_min:>+15.0f}",
             )
 
         output = CURSOR_HOME + "\n".join(f"{line}{CLEAR_LINE}" for line in lines)

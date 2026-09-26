@@ -1,5 +1,4 @@
-"""
-"""
+""" """
 
 # ============================================================================
 # IMPORT
@@ -7,7 +6,6 @@
 
 # ENUMS IMPORTS
 from atm_sim.enums.aircraft_status_enum import AircraftStatusEnum
-
 
 # ============================================================================
 # CONSTANTS
@@ -17,11 +15,11 @@ from atm_sim.enums.aircraft_status_enum import AircraftStatusEnum
 # SIMULATION
 # ----------------------------------------------------------------------------
 EARTH_RADIUS_METERS: float = 6371000.0
-VERTICAL_RATE_THRESHOLD_MS: float = 0.5
 METERS_PER_FOOT: float = 0.3048
 MS_TO_KMH: float = 3.6
 MS_TO_FT_PER_MIN: float = 196.8504
 SPEED_LEVELS: list[float] = [-3600.0, -60.0, -5.0, 1.0, 5.0, 60.0, 3600.0]
+MIN_TRAJECTORY_POINTS: int = 2
 
 # ----------------------------------------------------------------------------
 # DEFAULT VALUE
@@ -29,7 +27,6 @@ SPEED_LEVELS: list[float] = [-3600.0, -60.0, -5.0, 1.0, 5.0, 60.0, 3600.0]
 DEFAULT_AIRPORT: str = "LFBO"
 DEFAULT_MAX_FLIGHTS: int = 5
 DEFAULT_TICK_SECONDS: float = 1.0
-DEFAULT_SPEED_FACTOR: float = 1.0
 DEFAULT_SPEED_INDEX: int = 3
 
 # ----------------------------------------------------------------------------
@@ -41,15 +38,15 @@ COLOR_RESET: str = "\033[0m"
 COLOR_WAITING: str = "\033[33m"
 COLOR_IN_FLIGHT: str = "\033[36m"
 COLOR_ARRIVED: str = "\033[32m"
-STATUS_SORT_ORDER: dict[str, int] = {
+STATUS_SORT_ORDER: dict[AircraftStatusEnum, int] = {
     AircraftStatusEnum.IN_FLIGHT: 0,
     AircraftStatusEnum.WAITING: 1,
-    AircraftStatusEnum.ARRIVED: 2
+    AircraftStatusEnum.ARRIVED: 2,
 }
-STATUS_COLORS: dict[str, str] = {
+STATUS_COLORS: dict[AircraftStatusEnum, str] = {
     AircraftStatusEnum.WAITING: COLOR_WAITING,
     AircraftStatusEnum.IN_FLIGHT: COLOR_IN_FLIGHT,
-    AircraftStatusEnum.ARRIVED: COLOR_ARRIVED
+    AircraftStatusEnum.ARRIVED: COLOR_ARRIVED,
 }
 MIN_RENDER_INTERVAL_SECONDS: float = 0.05
 IDLE_SLEEP_SECONDS: float = 0.1

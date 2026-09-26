@@ -27,6 +27,7 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.6",
     "mypy>=1.11",
+    "pandas-stubs>=2.2",
 ]
 
 [project.scripts]
@@ -59,6 +60,13 @@ max-statements = 50
 known-first-party = ["atm_sim"]
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
 
+[tool.ruff.lint.per-file-ignores]
+"**/*.py" = ["D419", "CPY001"]
+"src/atm_sim/main.py" = ["BLE001", "T201"]
+"src/atm_sim/services/simulation_service.py" = ["T201"]
+"src/atm_sim/services/console_renderer_service.py" = ["T201", "CPY001"]
+"src/atm_sim/services/keyboard_listener_service.py" = ["PLC0415"]
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
@@ -86,6 +94,10 @@ show_error_codes = true
 [[tool.mypy.overrides]]
 module = ["pyopensky.*", "airportsdata.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "atm_sim.services.keyboard_listener_service"
+warn_unreachable = false
 
 # ============================================================================
 # PYTEST

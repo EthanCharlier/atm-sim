@@ -1,33 +1,28 @@
-"""
-"""
+""" """
 
 # ============================================================================
 # IMPORT
 # ============================================================================
-import random
 import logging
-import pandas as pd
-from typing import cast
+import random
 from datetime import datetime
+
+import pandas as pd
 from pyopensky.trino import Trino
 from trino.exceptions import Error as TrinoError
 
+# CONSTANTS IMPORT
+from atm_sim.constants.constants import METERS_PER_FOOT, MIN_TRAJECTORY_POINTS, MS_TO_FT_PER_MIN, MS_TO_KMH
+from atm_sim.entities.aircraft_entity import AircraftEntity
+
 # ENTITIES IMPORT
 from atm_sim.entities.airport_entity import AirportEntity
-from atm_sim.entities.aircraft_entity import AircraftEntity
+from atm_sim.entities.flight_query_spec_entity import FlightQuerySpecEntity
 from atm_sim.entities.trajectory_entity import TrajectoryEntity
 from atm_sim.entities.trajectory_point_entity import TrajectoryPointEntity
 
 # SERVICES IMPORT
 from atm_sim.services.airport_service import AirportService
-
-# CONSTANTS IMPORT
-from atm_sim.constants.constants import (
-    METERS_PER_FOOT,
-    MS_TO_KMH,
-    MS_TO_FT_PER_MIN
-)
-
 
 # ============================================================================
 # LOGGER
@@ -39,12 +34,11 @@ logger = logging.getLogger(__name__)
 # FUNCTIONS
 # ============================================================================
 def _to_unix_seconds(
-    value: pd.Timestamp | int | float,
+    value: pd.Timestamp | float,
 ) -> float:
-    """
-    """
+    """ """
     if isinstance(value, pd.Timestamp):
-        return value.timestamp()
+        return float(value.timestamp())
     return float(value)
 
 
@@ -52,8 +46,7 @@ def _distribute_quotas(
     num_specs: int,
     max_flights: int,
 ) -> list[int]:
-    """
-    """
+    """ """
     base = max_flights // num_specs
     remainder = max_flights % num_specs
 
@@ -73,30 +66,29 @@ def _build_query_specs(
     destinations: list[str] | None,
     callsigns: list[str] | None,
     icao24s: list[str] | None,
-) -> list[dict[str, str]]:
-    """
-    """
+) -> list[FlightQuerySpecEntity]:
+    """ """
     if airports:
-        return [{"airport": code} for code in airports]
+        return [FlightQuerySpecEntity(airport=code) for code in airports]
 
     if origins and destinations:
         return [
-            {"departure_airport": origin, "arrival_airport": destination}
+            FlightQuerySpecEntity(departure_airport=origin, arrival_airport=destination)
             for origin in origins
             for destination in destinations
         ]
 
     if origins:
-        return [{"departure_airport": origin} for origin in origins]
+        return [FlightQuerySpecEntity(departure_airport=origin) for origin in origins]
 
     if destinations:
-        return [{"arrival_airport": destination} for destination in destinations]
+        return [FlightQuerySpecEntity(arrival_airport=destination) for destination in destinations]
 
     if callsigns:
-        return [{"callsign": callsign} for callsign in callsigns]
+        return [FlightQuerySpecEntity(callsign=callsign) for callsign in callsigns]
 
     if icao24s:
-        return [{"icao24": icao24} for icao24 in icao24s]
+        return [FlightQuerySpecEntity(icao24=icao24) for icao24 in icao24s]
 
     return []
 
@@ -105,16 +97,14 @@ def _build_query_specs(
 # CLASS
 # ============================================================================
 class OpenSkyService:
-    """
-    """
+    """ """
 
     def __init__(
         self,
         trino: Trino,
         airport_service: AirportService,
     ) -> None:
-        """
-        """
+        """ """
         self.trino: Trino = trino
         self.airport_service: AirportService = airport_service
 
@@ -133,8 +123,7 @@ class OpenSkyService:
         min_ground_speed_kmh: float | None = None,
         min_duration_seconds: float | None = None,
     ) -> list[AircraftEntity]:
-        """
-        """
+        """ """
         query_specs = _build_query_specs(airports, origins, destinations, callsigns, icao24s)
 
         if not query_specs:
@@ -143,19 +132,19 @@ class OpenSkyService:
         quotas = _distribute_quotas(len(query_specs), max_flights)
 
         selected_batches: list[pd.DataFrame] = []
-        for query_kwargs, quota in zip(query_specs, quotas):
+        for query_spec, quota in zip(query_specs, quotas):
             if quota <= 0:
                 continue
 
-            batch = self._select_flights_for_query(query_kwargs, begin, end, quota)
+            batch = self._select_flights_for_query(query_spec, begin, end, quota)
             if batch is not None:
                 selected_batches.append(batch)
 
         if not selected_batches:
             return []
 
-        combined_flights = cast(pd.DataFrame, pd.concat(selected_batches, ignore_index = True))
-        combined_flights = combined_flights.drop_duplicates(subset = ["icao24", "firstseen"])
+        combined_flights = pd.concat(selected_batches, ignore_index=True)
+        combined_flights = combined_flights.drop_duplicates(subset=["icao24", "firstseen"])
 
         history_df = self._fetch_combined_history(combined_flights)
 
@@ -176,10 +165,10 @@ class OpenSkyService:
 
         return self._apply_post_filters(
             fleet,
-            min_altitude_ft = min_altitude_ft,
-            max_altitude_ft = max_altitude_ft,
-            min_ground_speed_kmh = min_ground_speed_kmh,
-            min_duration_seconds = min_duration_seconds,
+            min_altitude_ft=min_altitude_ft,
+            max_altitude_ft=max_altitude_ft,
+            min_ground_speed_kmh=min_ground_speed_kmh,
+            min_duration_seconds=min_duration_seconds,
         )
 
     @staticmethod
@@ -190,8 +179,7 @@ class OpenSkyService:
         min_ground_speed_kmh: float | None,
         min_duration_seconds: float | None,
     ) -> list[AircraftEntity]:
-        """
-        """
+        """ """
         filtered: list[AircraftEntity] = []
 
         for aircraft in fleet:
@@ -215,17 +203,24 @@ class OpenSkyService:
 
     def _select_flights_for_query(
         self,
-        query_kwargs: dict[str, str],
+        query_spec: FlightQuerySpecEntity,
         begin: datetime,
         end: datetime,
         quota: int,
     ) -> pd.DataFrame | None:
-        """
-        """
+        """ """
         try:
-            flightlist_df = self.trino.flightlist(begin, end, **query_kwargs)
-        except (TrinoError, OSError):
-            logger.exception("flightlist query failed for %s", query_kwargs)
+            flightlist_df = self.trino.flightlist(
+                begin,
+                end,
+                airport=query_spec.airport,
+                departure_airport=query_spec.departure_airport,
+                arrival_airport=query_spec.arrival_airport,
+                callsign=query_spec.callsign,
+                icao24=query_spec.icao24,
+            )
+        except TrinoError, OSError:
+            logger.exception("flightlist query failed for %s", vars(query_spec))
             return None
 
         if flightlist_df is None or flightlist_df.empty:
@@ -240,16 +235,15 @@ class OpenSkyService:
 
     @staticmethod
     def _filter_valid_flights(
-            flights_df: pd.DataFrame,
+        flights_df: pd.DataFrame,
     ) -> pd.DataFrame:
-        """
-        """
+        """ """
         mask = (
-                flights_df["icao24"].apply(lambda v: isinstance(v, str))
-                & flights_df["firstseen"].notna()
-                & flights_df["lastseen"].notna()
-                & flights_df["departure"].apply(lambda v: isinstance(v, str))
-                & flights_df["arrival"].apply(lambda v: isinstance(v, str))
+            flights_df["icao24"].apply(lambda v: isinstance(v, str))
+            & flights_df["firstseen"].notna()
+            & flights_df["lastseen"].notna()
+            & flights_df["departure"].apply(lambda v: isinstance(v, str))
+            & flights_df["arrival"].apply(lambda v: isinstance(v, str))
         )
         return flights_df[mask]
 
@@ -257,27 +251,24 @@ class OpenSkyService:
         self,
         flights_df: pd.DataFrame,
     ) -> pd.DataFrame | None:
-        """
-        """
+        """ """
         icao24_list = flights_df["icao24"].unique().tolist()
         overall_begin = flights_df["firstseen"].apply(_to_unix_seconds).min()
         overall_end = flights_df["lastseen"].apply(_to_unix_seconds).max()
 
         try:
             history_df = self.trino.history(overall_begin, overall_end, icao24=icao24_list)
-        except (TrinoError, OSError):
+        except TrinoError, OSError:
             logger.exception("history query failed for %s", icao24_list)
             return None
 
         if history_df is None or history_df.empty:
             return None
 
-        history_df = history_df.dropna(
-            subset = ["time", "lat", "lon", "baroaltitude", "onground", "icao24"]
-        ).copy()
+        history_df = history_df.dropna(subset=["time", "lat", "lon", "baroaltitude", "onground", "icao24"]).copy()
 
         history_df["time_unix"] = history_df["time"].apply(_to_unix_seconds)
-        history_df = history_df.sort_values("time_unix").reset_index(drop = True)
+        history_df = history_df.sort_values("time_unix").reset_index(drop=True)
 
         return history_df
 
@@ -285,8 +276,7 @@ class OpenSkyService:
         self,
         code: object,
     ) -> AirportEntity:
-        """
-        """
+        """ """
         if not isinstance(code, str):
             return AirportEntity.unknown()
 
@@ -299,8 +289,7 @@ class OpenSkyService:
         history_by_icao24: dict[str, pd.DataFrame],
         reference_time: float,
     ) -> AircraftEntity | None:
-        """
-        """
+        """ """
         icao24 = str(flight_row["icao24"])
         first_seen = _to_unix_seconds(flight_row["firstseen"])
         last_seen = _to_unix_seconds(flight_row["lastseen"])
@@ -311,11 +300,10 @@ class OpenSkyService:
             return None
 
         flight_history = aircraft_history[
-            (aircraft_history["time_unix"] >= first_seen)
-            & (aircraft_history["time_unix"] <= last_seen)
+            (aircraft_history["time_unix"] >= first_seen) & (aircraft_history["time_unix"] <= last_seen)
         ]
 
-        if len(flight_history) < 2:
+        if len(flight_history) < MIN_TRAJECTORY_POINTS:
             logger.warning("Skipping %s: no usable history", icao24)
             return None
 
@@ -326,17 +314,17 @@ class OpenSkyService:
 
             trajectory_points.append(
                 TrajectoryPointEntity(
-                    time_offset_seconds = row["time_unix"] - reference_time,
-                    lat = float(row["lat"]),
-                    lon = float(row["lon"]),
-                    altitude_ft = float(row["baroaltitude"]) / METERS_PER_FOOT,
-                    ground_speed_kmh = float(velocity) * MS_TO_KMH,
-                    vertical_rate_ft_per_min = float(vertrate) * MS_TO_FT_PER_MIN,
-                    on_ground = bool(row["onground"])
-                )
+                    time_offset_seconds=row["time_unix"] - reference_time,
+                    lat=float(row["lat"]),
+                    lon=float(row["lon"]),
+                    altitude_ft=float(row["baroaltitude"]) / METERS_PER_FOOT,
+                    ground_speed_kmh=float(velocity) * MS_TO_KMH,
+                    vertical_rate_ft_per_min=float(vertrate) * MS_TO_FT_PER_MIN,
+                    on_ground=bool(row["onground"]),
+                ),
             )
 
-        trajectory = TrajectoryEntity(points = trajectory_points)
+        trajectory = TrajectoryEntity(points=trajectory_points)
 
         callsign_raw = flight_row.get("callsign")
         callsign = callsign_raw.strip() if isinstance(callsign_raw, str) else "UNKNOWN"
@@ -345,8 +333,8 @@ class OpenSkyService:
         destination_airport = self._resolve_airport(flight_row.get("arrival"))
 
         return AircraftEntity(
-            callsign = callsign,
-            origin_airport = origin_airport,
-            destination_airport = destination_airport,
-            trajectory = trajectory
+            callsign=callsign,
+            origin_airport=origin_airport,
+            destination_airport=destination_airport,
+            trajectory=trajectory,
         )
