@@ -78,6 +78,9 @@ atm-sim --callsign AFR123 --start 2026-09-01T06:00:00 --end 2026-09-01T08:00:00
 
 # Combined filters
 atm-sim --airport LFBO --min-altitude 1000 --max-altitude 35000 --min-speed 100 --min-duration 300
+
+# Only Air France flights at an airport
+atm-sim --airport LFPG --airline AFR --start 2026-09-01T06:00:00 --end 2026-09-01T08:00:00
 ```
 
 Controls while running: `[SPACE]` pause/resume, `[+/-]` speed, `[ESC]` quit.
@@ -126,6 +129,7 @@ These are data limitations, not bugs:
 ### Done
 
 - [x] Filter by callsign / icao24
+- [x] Filter by airline (callsign prefix)
 - [x] Aircraft type (OpenSky aircraft database)
 - [x] Basic CI (SonarCloud + GitHub Actions)
 - [x] Logs redirected to a file
@@ -139,67 +143,64 @@ These are data limitations, not bugs:
 3. **Unit tests** — `NavigationService` and `TrajectoryEntity` are the
    simplest, most valuable candidates to cover first (also blocks the
    SonarCloud Quality Gate, currently at 0% coverage)
-4. **Filter by airline (callsign prefix)** — the current callsign filter is
-   exact match only; prefix filtering (e.g. all `AFR*`) needs client-side
-   filtering
-5. **Export simulation data** — dump each aircraft's trajectory to CSV/JSON
+4. **Export simulation data** — dump each aircraft's trajectory to CSV/JSON
    after import
-6. **End-of-simulation statistics** — total flights, average duration, max
+5. **End-of-simulation statistics** — total flights, average duration, max
    altitude/speed observed
-7. **Config file** (YAML/TOML) as an alternative to CLI arguments
-8. **Basic ATC** — give an in-flight instruction (heading/altitude change)
+6. **Config file** (YAML/TOML) as an alternative to CLI arguments
+7. **Basic ATC** — give an in-flight instruction (heading/altitude change)
    that deviates an aircraft from its real imported trajectory
-9. **Compare multiple days**
-10. **Basic anomaly detection**
-11. **Geographic filtering by area (bounding box)** — new selection mode via
+8. **Compare multiple days**
+9. **Basic anomaly detection**
+10. **Geographic filtering by area (bounding box)** — new selection mode via
     `Trino.history(bounds=...)`, pending validation of the input format
     (`--min-lat`/`--max-lat`/`--min-lon`/`--max-lon`)
-12. **Conflict detection** (vertical/horizontal separation)
-13. **Exclusion zones / simplified airspace**
-14. **Fast-forward to a specific event**
-15. **Local cache of Trino results**
-16. **"Dry-run" mode** — preview before import
-17. **Weather at flight time** (wind, temperature)
-18. **Remaining distance / ETA**
-19. **Interactive filtering/sorting in the display**
-20. **Aircraft detail view on selection**
-21. **Sound/visual notifications on events**
-22. **Typed centralized config** (dataclass/Pydantic)
-23. **"Replay" vs "live" mode**
-24. **Synchronized multi-screen replay**
-25. **"Replay bookmarks" system**
-26. **Emergency squawk detection** (7500/7600/7700)
-27. **Go-around detection**
-28. **Diversion detection**
-29. **Scheduled vs actual time comparison**
-30. **Delay propagation analysis**
-31. **Airport connection network graph**
-32. **Traffic density heatmap**
-33. **Seasonal traffic comparison**
-34. **Terrain/elevation map overlay**
-35. **Visual day/night cycle in the simulation**
-36. **Airspace class overlay**
-37. **Squawk code display per aircraft**
-38. **Aircraft photo** (Planespotters-like API)
-39. **Airline logo/livery**
-40. **ML-based delay prediction**
-41. **Fuel consumption estimation**
-42. **Cross-validation** with FlightRadar24/ADS-B Exchange
-43. **Multi-provider data system** (fallback if Trino is unavailable)
-44. **Retry/backoff strategy** for Trino queries
-45. **Diff between two simulation runs**
-46. **REST API** to drive the simulation externally
-47. **Mobile companion view**
-48. **Voice announcements** (text-to-speech) for events
-49. **Console display i18n**
-50. **Docker packaging**
-51. **One-click installer**
-52. **Save/resume session** between two launches
-53. **Speed change undo/redo**
-54. **Plugin system** for custom renderers
-55. **Automated versioning and changelog**
-56. **Video/GIF generation** of a simulation
-57. **Overview mini-map**
+11. **Conflict detection** (vertical/horizontal separation)
+12. **Exclusion zones / simplified airspace**
+13. **Fast-forward to a specific event**
+14. **Local cache of Trino results**
+15. **"Dry-run" mode** — preview before import
+16. **Weather at flight time** (wind, temperature)
+17. **Remaining distance / ETA**
+18. **Interactive filtering/sorting in the display**
+19. **Aircraft detail view on selection**
+20. **Sound/visual notifications on events**
+21. **Typed centralized config** (dataclass/Pydantic)
+22. **"Replay" vs "live" mode**
+23. **Synchronized multi-screen replay**
+24. **"Replay bookmarks" system**
+25. **Emergency squawk detection** (7500/7600/7700)
+26. **Go-around detection**
+27. **Diversion detection**
+28. **Scheduled vs actual time comparison**
+29. **Delay propagation analysis**
+30. **Airport connection network graph**
+31. **Traffic density heatmap**
+32. **Seasonal traffic comparison**
+33. **Terrain/elevation map overlay**
+34. **Visual day/night cycle in the simulation**
+35. **Airspace class overlay**
+36. **Squawk code display per aircraft**
+37. **Aircraft photo** (Planespotters-like API)
+38. **Airline logo/livery**
+39. **ML-based delay prediction**
+40. **Fuel consumption estimation**
+41. **Cross-validation** with FlightRadar24/ADS-B Exchange
+42. **Multi-provider data system** (fallback if Trino is unavailable)
+43. **Retry/backoff strategy** for Trino queries
+44. **Diff between two simulation runs**
+45. **REST API** to drive the simulation externally
+46. **Mobile companion view**
+47. **Voice announcements** (text-to-speech) for events
+48. **Console display i18n**
+49. **Docker packaging**
+50. **One-click installer**
+51. **Save/resume session** between two launches
+52. **Speed change undo/redo**
+53. **Plugin system** for custom renderers
+54. **Automated versioning and changelog**
+55. **Video/GIF generation** of a simulation
+56. **Overview mini-map**
 
 ## Attribution
 

@@ -90,6 +90,13 @@ def parse_arguments() -> argparse.Namespace:
         help="One or more specific ICAO24 transponder addresses",
     )
     parser.add_argument(
+        "--airline",
+        type=str,
+        nargs="+",
+        default=None,
+        help="Only keep flights whose callsign starts with one of these ICAO airline prefixes (e.g. AFR RYR)",
+    )
+    parser.add_argument(
         "--min-altitude",
         type=float,
         default=None,
@@ -175,6 +182,7 @@ def main() -> None:
             destinations=args.destination,
             callsigns=args.callsign,
             icao24s=args.icao24,
+            airlines=args.airline,
             min_altitude_ft=args.min_altitude,
             max_altitude_ft=args.max_altitude,
             min_ground_speed_kmh=args.min_speed,

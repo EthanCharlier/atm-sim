@@ -121,6 +121,7 @@ class OpenSkyService:
         destinations: list[str] | None = None,
         callsigns: list[str] | None = None,
         icao24s: list[str] | None = None,
+        airlines: list[str] | None = None,
         min_altitude_ft: float | None = None,
         max_altitude_ft: float | None = None,
         min_ground_speed_kmh: float | None = None,
@@ -172,6 +173,7 @@ class OpenSkyService:
             max_altitude_ft=max_altitude_ft,
             min_ground_speed_kmh=min_ground_speed_kmh,
             min_duration_seconds=min_duration_seconds,
+            airlines=airlines,
         )
 
     @staticmethod
@@ -181,9 +183,11 @@ class OpenSkyService:
         max_altitude_ft: float | None,
         min_ground_speed_kmh: float | None,
         min_duration_seconds: float | None,
+        airlines: list[str] | None,
     ) -> list[AircraftEntity]:
         """ """
         filtered: list[AircraftEntity] = []
+        airline_prefixes = tuple(prefix.upper() for prefix in airlines) if airlines else None
 
         for aircraft in fleet:
             trajectory = aircraft.trajectory
@@ -198,6 +202,9 @@ class OpenSkyService:
                 continue
 
             if min_duration_seconds is not None and trajectory.get_duration_seconds() < min_duration_seconds:
+                continue
+
+            if airline_prefixes is not None and not aircraft.callsign.upper().startswith(airline_prefixes):
                 continue
 
             filtered.append(aircraft)
