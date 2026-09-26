@@ -18,6 +18,7 @@ from atm_sim.constants.constants import LOG_FILE_PATH
 from atm_sim.services.airport_service import AirportService
 from atm_sim.services.opensky_service import OpenSkyService
 from atm_sim.services.simulation_service import SimulationService
+from atm_sim.services.aircraft_database_service import AircraftDatabaseService
 
 # ============================================================================
 # LOGGER
@@ -157,7 +158,12 @@ def main() -> None:
     try:
         trino = Trino()
         airport_service = AirportService()
-        opensky_service = OpenSkyService(trino=trino, airport_service=airport_service)
+        aircraft_database_service = AircraftDatabaseService()
+        opensky_service = OpenSkyService(
+            trino=trino,
+            airport_service=airport_service,
+            aircraft_database_service=aircraft_database_service,
+        )
         simulation_service = SimulationService(
             opensky_service=opensky_service,
             airport_service=airport_service,

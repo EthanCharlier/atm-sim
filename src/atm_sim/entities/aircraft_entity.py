@@ -7,6 +7,7 @@
 # ENTITIES IMPORT
 from atm_sim.entities.airport_entity import AirportEntity
 from atm_sim.entities.trajectory_entity import TrajectoryEntity
+from atm_sim.entities.aircraft_metadata_entity import AircraftMetadataEntity
 
 # ENUMS IMPORTS
 from atm_sim.enums.aircraft_status_enum import AircraftStatusEnum
@@ -24,12 +25,14 @@ class AircraftEntity:
         origin_airport: AirportEntity,
         destination_airport: AirportEntity,
         trajectory: TrajectoryEntity,
+        metadata: AircraftMetadataEntity | None = None,
     ) -> None:
         """ """
         self.callsign: str = callsign
         self.origin_airport: AirportEntity = origin_airport
         self.destination_airport: AirportEntity = destination_airport
         self.trajectory: TrajectoryEntity = trajectory
+        self.metadata: AircraftMetadataEntity | None = metadata
 
         self.current_lat: float
         self.current_lon: float

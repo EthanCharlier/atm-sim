@@ -60,3 +60,9 @@ SPEED_DOWN_KEY: str = "-"
 # LOG
 # ----------------------------------------------------------------------------
 LOG_FILE_PATH = Path("atm-sim.log")
+
+# ----------------------------------------------------------------------------
+# AIRCRAFT DATABASE
+# ----------------------------------------------------------------------------
+AIRCRAFT_DATABASE_URL: str = "https://opensky-network.org/datasets/metadata/aircraftDatabase.csv"
+AIRCRAFT_DATABASE_CACHE_PATH: Path = Path.home() / ".cache" / "atm-sim" / "aircraftDatabase.csv"

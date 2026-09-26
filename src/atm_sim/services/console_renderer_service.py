@@ -73,17 +73,19 @@ class ConsoleRendererService:
             f"{COLOR_ARRIVED}{counts[AircraftStatusEnum.ARRIVED]} arrived{COLOR_RESET}  |  "
             f"controls: [SPACE] pause  [+/-] speed  [ESC] quit",
             "",
-            f"{'CALLSIGN':<10} {'ORIGIN':<7} {'DEST':<7} {'STATUS':<11} {'PROGRESS':>8} {'LAT':>9} {'LON':>10} "
-            f"{'ALT (ft)':>9} {'SPEED (km/h)':>13} {'VRATE (ft/min)':>15}",
-            "-" * 110,
+            f"{'CALLSIGN':<10} {'ORIGIN':<7} {'DEST':<7} {'TYPE':<6} {'STATUS':<11} {'PROGRESS':>8} {'LAT':>9} "
+            f"{'LON':>10} {'ALT (ft)':>9} {'SPEED (km/h)':>13} {'VRATE (ft/min)':>15}",
+            "-" * 117,
         ]
 
         for aircraft in sorted_fleet:
             color = STATUS_COLORS[aircraft.status]
             progress = aircraft.get_progress_percent(engine.clock.sim_time_elapsed)
+            type_code = aircraft.metadata.typecode if aircraft.metadata and aircraft.metadata.typecode else "?"
 
             lines.append(
                 f"{aircraft.callsign:<10} {aircraft.origin_airport.icao:<7} {aircraft.destination_airport.icao:<7} "
+                f"{type_code:<6} "
                 f"{color}{aircraft.status.value:<11}{COLOR_RESET} {progress:>7.1f}% "
                 f"{aircraft.current_lat:>9.4f} {aircraft.current_lon:>10.4f} "
                 f"{aircraft.current_altitude_ft:>9.0f} "

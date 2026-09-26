@@ -27,3 +27,14 @@ class MultipleSelectionModesError(ValueError):
     def __init__(self) -> None:
         """ """
         super().__init__("Only one selection mode allowed: --airport, --origin/--destination, --callsign, or --icao24")
+
+
+class AircraftDatabaseDownloadError(OSError):
+    """ """
+
+    def __init__(
+        self,
+        url: str,
+    ) -> None:
+        """ """
+        super().__init__(f"Failed to download aircraft database from {url}")

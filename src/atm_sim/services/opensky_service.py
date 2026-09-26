@@ -23,6 +23,7 @@ from atm_sim.entities.trajectory_point_entity import TrajectoryPointEntity
 
 # SERVICES IMPORT
 from atm_sim.services.airport_service import AirportService
+from atm_sim.services.aircraft_database_service import AircraftDatabaseService
 
 # ============================================================================
 # LOGGER
@@ -103,10 +104,12 @@ class OpenSkyService:
         self,
         trino: Trino,
         airport_service: AirportService,
+        aircraft_database_service: AircraftDatabaseService,
     ) -> None:
         """ """
         self.trino: Trino = trino
         self.airport_service: AirportService = airport_service
+        self.aircraft_database_service: AircraftDatabaseService = aircraft_database_service
 
     def import_fleet_for_period(
         self,
@@ -132,7 +135,7 @@ class OpenSkyService:
         quotas = _distribute_quotas(len(query_specs), max_flights)
 
         selected_batches: list[pd.DataFrame] = []
-        for query_spec, quota in zip(query_specs, quotas):
+        for query_spec, quota in zip(query_specs, quotas, strict=True):
             if quota <= 0:
                 continue
 
@@ -268,9 +271,7 @@ class OpenSkyService:
         history_df = history_df.dropna(subset=["time", "lat", "lon", "baroaltitude", "onground", "icao24"]).copy()
 
         history_df["time_unix"] = history_df["time"].apply(_to_unix_seconds)
-        history_df = history_df.sort_values("time_unix").reset_index(drop=True)
-
-        return history_df
+        return history_df.sort_values("time_unix").reset_index(drop=True)
 
     def _resolve_airport(
         self,
@@ -331,10 +332,12 @@ class OpenSkyService:
 
         origin_airport = self._resolve_airport(flight_row.get("departure"))
         destination_airport = self._resolve_airport(flight_row.get("arrival"))
+        metadata = self.aircraft_database_service.get_aircraft(icao24)
 
         return AircraftEntity(
             callsign=callsign,
             origin_airport=origin_airport,
             destination_airport=destination_airport,
             trajectory=trajectory,
+            metadata=metadata,
         )
