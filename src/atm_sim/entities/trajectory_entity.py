@@ -128,6 +128,22 @@ class TrajectoryEntity:
         """ """
         return max(point.ground_speed_kmh for point in self.points)
 
+    def get_max_altitude_ft_until(
+        self,
+        global_elapsed_seconds: float,
+    ) -> float:
+        """ """
+        clamped_seconds = self._clamp_to_range(global_elapsed_seconds)
+        return max(point.altitude_ft for point in self.points if point.time_offset_seconds <= clamped_seconds)
+
+    def get_max_ground_speed_kmh_until(
+        self,
+        global_elapsed_seconds: float,
+    ) -> float:
+        """ """
+        clamped_seconds = self._clamp_to_range(global_elapsed_seconds)
+        return max(point.ground_speed_kmh for point in self.points if point.time_offset_seconds <= clamped_seconds)
+
     def get_duration_seconds(self) -> float:
         """ """
         return self.end_time_seconds - self.start_time_seconds

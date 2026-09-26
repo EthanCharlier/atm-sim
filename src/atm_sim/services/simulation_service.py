@@ -16,6 +16,7 @@ from atm_sim.constants.constants import (
     MIN_RENDER_INTERVAL_SECONDS,
     PAUSE_KEY,
     QUIT_KEY,
+    ENTER_KEY,
     SPEED_DOWN_KEY,
     SPEED_UP_KEY,
 )
@@ -24,6 +25,8 @@ from atm_sim.constants.constants import (
 from atm_sim.entities.aircraft_entity import AircraftEntity
 from atm_sim.entities.clock_entity import SimClockEntity, resolve_speed_index
 from atm_sim.entities.simulation_engine_entity import SimulationEngineEntity
+from atm_sim.entities.aircraft_statistics_entity import AircraftStatisticsEntity
+from atm_sim.entities.simulation_statistics_entity import SimulationStatisticsEntity
 
 # ENUMS IMPORT
 from atm_sim.enums.simulation_status_enum import SimulationStatusEnum
@@ -248,7 +251,81 @@ class SimulationService:
         finally:
             listener.stop()
 
+        print("\nPress [ESC] to quit or [ENTER] to see the simulation summary...")
+
+        listener.start()
+        try:
+            show_summary = SimulationService._wait_for_summary_choice(listener)
+        finally:
+            listener.stop()
+
+        if show_summary:
+            statistics = SimulationService._compute_statistics(fleet, engine.clock.sim_time_elapsed)
+            ConsoleRendererService.render_summary(airport_label, begin, end, statistics)
+
         print("\nSimulation stopped.")
+
+    @staticmethod
+    def _wait_for_summary_choice(
+        listener: KeyboardListenerService,
+    ) -> bool:
+        """ """
+        if not listener.is_interactive():
+            return True
+
+        while True:
+            key = listener.read_key_nonblocking()
+
+            if key == QUIT_KEY:
+                return False
+            if key == ENTER_KEY:
+                return True
+
+            time.sleep(IDLE_SLEEP_SECONDS)
+
+    @staticmethod
+    def _compute_statistics(
+        fleet: list[AircraftEntity],
+        final_elapsed_seconds: float,
+    ) -> SimulationStatisticsEntity:
+        """ """
+        per_aircraft = [
+            AircraftStatisticsEntity(
+                callsign=aircraft.callsign,
+                origin_icao=aircraft.origin_airport.icao,
+                destination_icao=aircraft.destination_airport.icao,
+                type_code=aircraft.metadata.typecode if aircraft.metadata and aircraft.metadata.typecode else "?",
+                status=aircraft.status,
+                progress_percent=aircraft.get_progress_percent(final_elapsed_seconds),
+                elapsed_seconds=max(
+                    0.0,
+                    min(final_elapsed_seconds, aircraft.trajectory.end_time_seconds)
+                    - aircraft.trajectory.start_time_seconds,
+                ),
+                max_altitude_ft=aircraft.trajectory.get_max_altitude_ft_until(final_elapsed_seconds),
+                max_ground_speed_kmh=aircraft.trajectory.get_max_ground_speed_kmh_until(final_elapsed_seconds),
+            )
+            for aircraft in fleet
+        ]
+
+        total_flights = len(per_aircraft)
+
+        if total_flights == 0:
+            return SimulationStatisticsEntity(
+                per_aircraft=[],
+                total_flights=0,
+                average_duration_seconds=0.0,
+                max_altitude_ft=0.0,
+                max_ground_speed_kmh=0.0,
+            )
+
+        return SimulationStatisticsEntity(
+            per_aircraft=per_aircraft,
+            total_flights=total_flights,
+            average_duration_seconds=sum(a.elapsed_seconds for a in per_aircraft) / total_flights,
+            max_altitude_ft=max(a.max_altitude_ft for a in per_aircraft),
+            max_ground_speed_kmh=max(a.max_ground_speed_kmh for a in per_aircraft),
+        )
 
     @staticmethod
     def _handle_key_input(

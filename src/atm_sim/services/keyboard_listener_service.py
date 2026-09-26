@@ -18,6 +18,10 @@ class KeyboardListenerService:
         self._old_settings: list[Any] | None = None
         self._interactive: bool = True
 
+    def is_interactive(self) -> bool:
+        """ """
+        return self._interactive
+
     def start(self) -> None:
         """ """
         if sys.platform == "win32":

@@ -12,6 +12,7 @@ from atm_sim.constants.constants import (
     COLOR_IN_FLIGHT,
     COLOR_RESET,
     COLOR_WAITING,
+    CLEAR_SCREEN,
     CURSOR_HOME,
     STATUS_COLORS,
     STATUS_SORT_ORDER,
@@ -19,6 +20,7 @@ from atm_sim.constants.constants import (
 
 # ENTITIES IMPORT
 from atm_sim.entities.simulation_engine_entity import SimulationEngineEntity
+from atm_sim.entities.simulation_statistics_entity import SimulationStatisticsEntity
 
 # ENUMS IMPORT
 from atm_sim.enums.aircraft_status_enum import AircraftStatusEnum
@@ -95,3 +97,43 @@ class ConsoleRendererService:
 
         output = CURSOR_HOME + "\n".join(f"{line}{CLEAR_LINE}" for line in lines)
         print(output)
+
+    @staticmethod
+    def render_summary(
+        airport_label: str,
+        begin: datetime,
+        end: datetime,
+        statistics: SimulationStatisticsEntity,
+    ) -> None:
+        """ """
+        lines: list[str] = [
+            "",
+            f"OpenSky ATM Simulation summary — {airport_label} "
+            f"between {begin:%Y-%m-%d %H:%M:%S} and {end:%Y-%m-%d %H:%M:%S} UTC",
+            f"{statistics.total_flights} flight(s)  |  "
+            f"avg time simulated {statistics.average_duration_seconds:.0f}s  |  "
+            f"max altitude {statistics.max_altitude_ft:.0f} ft  |  "
+            f"max speed {statistics.max_ground_speed_kmh:.0f} km/h",
+            "",
+            f"{'CALLSIGN':<10} {'ORIGIN':<7} {'DEST':<7} {'TYPE':<6} {'STATUS':<11} {'PROGRESS':>8} "
+            f"{'DURATION':>10} {'MAX ALT (ft)':>13} {'MAX SPEED (km/h)':>17}",
+            "-" * 97,
+        ]
+
+        sorted_aircraft = sorted(
+            statistics.per_aircraft,
+            key=lambda a: (STATUS_SORT_ORDER[a.status], -a.progress_percent),
+        )
+
+        for aircraft in sorted_aircraft:
+            color = STATUS_COLORS[aircraft.status]
+
+            lines.append(
+                f"{aircraft.callsign:<10} {aircraft.origin_icao:<7} {aircraft.destination_icao:<7} "
+                f"{aircraft.type_code:<6} {color}{aircraft.status.value:<11}{COLOR_RESET} "
+                f"{aircraft.progress_percent:>7.1f}% "
+                f"{aircraft.elapsed_seconds:>9.0f}s "
+                f"{aircraft.max_altitude_ft:>13.0f} {aircraft.max_ground_speed_kmh:>17.0f}",
+            )
+
+        print(CLEAR_SCREEN + CURSOR_HOME + "\n".join(lines))

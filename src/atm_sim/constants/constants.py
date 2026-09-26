@@ -33,6 +33,7 @@ DEFAULT_SPEED_INDEX: int = 3
 # ----------------------------------------------------------------------------
 # CLI
 # ----------------------------------------------------------------------------
+CLEAR_SCREEN: str = "\033[2J"
 CURSOR_HOME: str = "\033[H"
 CLEAR_LINE: str = "\033[K"
 COLOR_RESET: str = "\033[0m"
@@ -53,6 +54,7 @@ MIN_RENDER_INTERVAL_SECONDS: float = 0.05
 IDLE_SLEEP_SECONDS: float = 0.1
 PAUSE_KEY: str = " "
 QUIT_KEY: str = "\x1b"
+ENTER_KEY: str = "\r"
 SPEED_UP_KEY: str = "+"
 SPEED_DOWN_KEY: str = "-"
 
