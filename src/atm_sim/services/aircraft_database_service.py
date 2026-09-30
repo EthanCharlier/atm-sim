@@ -3,6 +3,7 @@
 # ============================================================================
 # IMPORT
 # ============================================================================
+import logging
 import urllib.error
 import urllib.request
 
@@ -16,6 +17,13 @@ from atm_sim.entities.aircraft_metadata_entity import AircraftMetadataEntity
 
 # EXCEPTIONS IMPORT
 from atm_sim.exceptions.exceptions import AircraftDatabaseDownloadError
+
+
+# ============================================================================
+# LOGGER
+# ============================================================================
+logger = logging.getLogger(__name__)
+
 
 # ============================================================================
 # CONSTANTS
@@ -56,18 +64,26 @@ class AircraftDatabaseService:
     def _ensure_cached() -> None:
         """ """
         if AIRCRAFT_DATABASE_CACHE_PATH.exists():
+            logger.info("Aircraft database already cached at %s", AIRCRAFT_DATABASE_CACHE_PATH)
             return
+
+        logger.info("Downloading aircraft database from %s", AIRCRAFT_DATABASE_URL)
 
         AIRCRAFT_DATABASE_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
         try:
             urllib.request.urlretrieve(AIRCRAFT_DATABASE_URL, AIRCRAFT_DATABASE_CACHE_PATH)
         except (urllib.error.URLError, OSError) as error:
+            logger.exception("Failed to download aircraft database from %s", AIRCRAFT_DATABASE_URL)
             raise AircraftDatabaseDownloadError(AIRCRAFT_DATABASE_URL) from error
+
+        logger.info("Aircraft database downloaded to %s", AIRCRAFT_DATABASE_CACHE_PATH)
 
     @staticmethod
     def _load_database() -> dict[str, dict[str, str]]:
         """ """
+        logger.info("Loading aircraft database from %s", AIRCRAFT_DATABASE_CACHE_PATH)
+
         database_df = pd.read_csv(
             AIRCRAFT_DATABASE_CACHE_PATH,
             usecols=_DATABASE_COLUMNS,
@@ -78,4 +94,8 @@ class AircraftDatabaseService:
         database_df = database_df.drop_duplicates(subset="icao24", keep="first")
 
         raw = database_df.set_index("icao24").to_dict(orient="index")
-        return {str(icao24): {str(key): str(value) for key, value in row.items()} for icao24, row in raw.items()}
+        result = {str(icao24): {str(key): str(value) for key, value in row.items()} for icao24, row in raw.items()}
+
+        logger.info("Loaded %d aircraft records", len(result))
+
+        return result

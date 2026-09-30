@@ -136,4 +136,5 @@ class ConsoleRendererService:
                 f"{aircraft.max_altitude_ft:>13.0f} {aircraft.max_ground_speed_kmh:>17.0f}",
             )
 
-        print(CLEAR_SCREEN + CURSOR_HOME + "\n".join(lines))
+        output = CLEAR_SCREEN + CURSOR_HOME + "\n".join(lines)
+        print(output)
