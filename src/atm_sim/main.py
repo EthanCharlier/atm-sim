@@ -154,6 +154,7 @@ def _configure_logging() -> None:
 def main() -> None:
     """ """
     _configure_logging()
+    logger.info("atm-sim starting")
 
     # ---
 

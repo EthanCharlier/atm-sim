@@ -131,7 +131,16 @@ class OpenSkyService:
         query_specs = _build_query_specs(airports, origins, destinations, callsigns, icao24s)
 
         if not query_specs:
+            logger.warning("No query spec built from the given selection, aborting import")
             return []
+
+        logger.info(
+            "Importing flights: %d query spec(s), max_flights=%d, period=%s to %s",
+            len(query_specs),
+            max_flights,
+            begin,
+            end,
+        )
 
         quotas = _distribute_quotas(len(query_specs), max_flights)
 
@@ -145,14 +154,17 @@ class OpenSkyService:
                 selected_batches.append(batch)
 
         if not selected_batches:
+            logger.warning("No flights found for any query spec")
             return []
 
         combined_flights = pd.concat(selected_batches, ignore_index=True)
         combined_flights = combined_flights.drop_duplicates(subset=["icao24", "firstseen"])
+        logger.info("%d candidate flight(s) after deduplication", len(combined_flights))
 
         history_df = self._fetch_combined_history(combined_flights)
 
         if history_df is None or history_df.empty:
+            logger.warning("No trajectory history found for the candidate flights")
             return []
 
         history_by_icao24: dict[str, pd.DataFrame] = {
@@ -167,7 +179,9 @@ class OpenSkyService:
             if aircraft is not None:
                 fleet.append(aircraft)
 
-        return self._apply_post_filters(
+        logger.info("%d aircraft built with usable trajectories", len(fleet))
+
+        filtered = self._apply_post_filters(
             fleet,
             min_altitude_ft=min_altitude_ft,
             max_altitude_ft=max_altitude_ft,
@@ -175,6 +189,9 @@ class OpenSkyService:
             min_duration_seconds=min_duration_seconds,
             airlines=airlines,
         )
+        logger.info("%d aircraft remaining after post-filters", len(filtered))
+
+        return filtered
 
     @staticmethod
     def _apply_post_filters(
@@ -234,14 +251,18 @@ class OpenSkyService:
             return None
 
         if flightlist_df is None or flightlist_df.empty:
+            logger.warning("flightlist query returned nothing for %s", vars(query_spec))
             return None
 
         valid_flights = self._filter_valid_flights(flightlist_df)
 
         if valid_flights.empty:
+            logger.warning("No valid flights after filtering for %s", vars(query_spec))
             return None
 
-        return valid_flights.head(quota).copy()
+        selected = valid_flights.head(quota).copy()
+        logger.info("Selected %d/%d valid flight(s) for %s", len(selected), len(valid_flights), vars(query_spec))
+        return selected
 
     @staticmethod
     def _filter_valid_flights(

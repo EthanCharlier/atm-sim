@@ -3,6 +3,7 @@
 # ============================================================================
 # IMPORT
 # ============================================================================
+import logging
 import time
 from datetime import UTC, datetime, timedelta
 
@@ -31,7 +32,7 @@ from atm_sim.entities.simulation_statistics_entity import SimulationStatisticsEn
 # ENUMS IMPORT
 from atm_sim.enums.simulation_status_enum import SimulationStatusEnum
 
-# EXEPTIONS IMPORT
+# EXCEPTIONS IMPORT
 from atm_sim.exceptions.exceptions import InvalidSimulationPeriodError, MultipleSelectionModesError
 
 # SERVICES IMPORT
@@ -39,6 +40,11 @@ from atm_sim.services.airport_service import AirportService
 from atm_sim.services.console_renderer_service import ConsoleRendererService
 from atm_sim.services.keyboard_listener_service import KeyboardListenerService
 from atm_sim.services.opensky_service import OpenSkyService
+
+# ============================================================================
+# LOGGER
+# ============================================================================
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================
@@ -99,6 +105,16 @@ class SimulationService:
             destinations,
             callsigns,
             icao24s,
+        )
+
+        logger.info(
+            "Starting simulation: %s, period=%s to %s, max_flights=%d, tick=%.1fs, speed_index=%d",
+            selection_label,
+            resolved_begin,
+            resolved_end,
+            resolved_max_flights,
+            resolved_tick_seconds,
+            resolved_speed_index,
         )
 
         print(f"Fetching {selection_label} between {resolved_begin} and {resolved_end}...")
@@ -259,6 +275,8 @@ class SimulationService:
         finally:
             listener.stop()
 
+        logger.info("Simulation ended, summary %s", "shown" if show_summary else "skipped")
+
         if show_summary:
             statistics = SimulationService._compute_statistics(fleet, engine.clock.sim_time_elapsed)
             ConsoleRendererService.render_summary(airport_label, begin, end, statistics)
@@ -336,12 +354,16 @@ class SimulationService:
         if key == PAUSE_KEY:
             if engine.clock.is_paused():
                 engine.clock.resume()
+                logger.debug("Simulation resumed")
             else:
                 engine.clock.pause()
+                logger.debug("Simulation paused")
         elif key == SPEED_UP_KEY:
             engine.clock.increase_speed()
+            logger.debug("Speed increased to x%g", engine.clock.speed_factor)
         elif key == SPEED_DOWN_KEY:
             engine.clock.decrease_speed()
+            logger.debug("Speed decreased to x%g", engine.clock.speed_factor)
 
     @staticmethod
     def _advance_and_get_status(
