@@ -40,6 +40,8 @@ ATM concepts, simulation engines, and 4D trajectories.
 - **End-of-simulation summary**: on stop (natural end or `[ESC]`), choose to
   see a per-aircraft summary table (status, progress, time simulated, max
   altitude/speed observed so far) or quit directly
+- **Config file**: a YAML or TOML file (`--config`) can provide defaults for
+  any CLI option; explicit CLI arguments always take precedence
 - **Logging**: redirected to a file (`atm-sim.log`), console reserved for
   the live render
 
@@ -54,8 +56,8 @@ pip install -e ".[dev]"
 Set your OpenSky Trino credentials in a `.env` file at the project root:
 
 ```
-TRINO_USERNAME=...
-TRINO_PASSWORD=...
+OPENSKY_USERNAME=...
+OPENSKY_PASSWORD=...
 ```
 
 ## Usage
@@ -63,31 +65,48 @@ TRINO_PASSWORD=...
 ```bash
 atm-sim --help
 ```
- 
+
 Examples:
- 
+
 ```bash
 # All traffic at an airport over a period
 atm-sim --airport LFBO --start 2026-09-01T06:00:00 --end 2026-09-01T08:00:00
- 
+
 # Departures only
 atm-sim --origin LFBO --start 2026-09-01T06:00:00 --end 2026-09-01T08:00:00
- 
+
 # A precise route
 atm-sim --origin LFBO --destination LFPO --start 2026-09-01T06:00:00 --end 2026-09-01T08:00:00
- 
+
 # A specific flight by callsign
 atm-sim --callsign AFR123 --start 2026-09-01T06:00:00 --end 2026-09-01T08:00:00
- 
+
 # Combined filters
 atm-sim --airport LFBO --min-altitude 1000 --max-altitude 35000 --min-speed 100 --min-duration 300
- 
+
 # Only Air France flights at an airport
 atm-sim --airport LFPG --airline AFR --start 2026-09-01T06:00:00 --end 2026-09-01T08:00:00
+
+# From a config file (YAML or TOML), CLI flags override individual values
+atm-sim --config config.yaml
+atm-sim --config config.yaml --max-flights 5
 ```
- 
+
+Example `config.yaml`:
+
+```yaml
+airport: [LFPG, LFBO]
+airline: [AFR]
+min_altitude: 1000
+max_altitude: 35000
+max_flights: 15
+speed_factor: 3600
+start: "2026-09-01T06:00:00"
+end: "2026-09-01T08:00:00"
+```
+
 Controls while running: `[SPACE]` pause/resume, `[+/-]` speed, `[ESC]` quit.
- 
+
 On stop, press `[ENTER]` for the simulation summary, or `[ESC]` again to exit
 directly.
 
@@ -138,6 +157,7 @@ These are data limitations, not bugs:
 - [x] Filter by airline (callsign prefix)
 - [x] Aircraft type (OpenSky aircraft database)
 - [x] End-of-simulation statistics
+- [x] Config file (YAML/TOML)
 - [x] Basic CI (SonarCloud + GitHub Actions)
 - [x] Logs redirected to a file
 
@@ -152,63 +172,56 @@ These are data limitations, not bugs:
    SonarCloud Quality Gate, currently at 0% coverage)
 4. **Export simulation data** — dump each aircraft's trajectory to CSV/JSON
    after import
-5. **Config file** (YAML/TOML) as an alternative to CLI arguments
-6. **Basic ATC** — give an in-flight instruction (heading/altitude change)
+5. **Basic ATC** — give an in-flight instruction (heading/altitude change)
    that deviates an aircraft from its real imported trajectory
-7. **Compare multiple days**
-8. **Basic anomaly detection**
-9. **Geographic filtering by area (bounding box)** — new selection mode via
+6. **Compare multiple days**
+7. **Basic anomaly detection**
+8. **Geographic filtering by area (bounding box)** — new selection mode via
    `Trino.history(bounds=...)`, pending validation of the input format
    (`--min-lat`/`--max-lat`/`--min-lon`/`--max-lon`)
-10. **Conflict detection** (vertical/horizontal separation)
-11. **Exclusion zones / simplified airspace**
-12. **Fast-forward to a specific event**
-13. **Local cache of Trino results**
-14. **"Dry-run" mode** — preview before import
-15. **Weather at flight time** (wind, temperature)
-16. **Remaining distance / ETA**
-17. **Interactive filtering/sorting in the display**
-18. **Aircraft detail view on selection**
-19. **Sound/visual notifications on events**
-20. **Typed centralized config** (dataclass/Pydantic)
-21. **"Replay" vs "live" mode**
-22. **Synchronized multi-screen replay**
-23. **"Replay bookmarks" system**
-24. **Emergency squawk detection** (7500/7600/7700)
-25. **Go-around detection**
-26. **Diversion detection**
-27. **Scheduled vs actual time comparison**
-28. **Delay propagation analysis**
-29. **Airport connection network graph**
-30. **Traffic density heatmap**
-31. **Seasonal traffic comparison**
-32. **Terrain/elevation map overlay**
-33. **Visual day/night cycle in the simulation**
-34. **Airspace class overlay**
-35. **Squawk code display per aircraft**
-36. **Aircraft photo** (Planespotters-like API)
-37. **Airline logo/livery**
-38. **ML-based delay prediction**
-39. **Fuel consumption estimation**
-40. **Cross-validation** with FlightRadar24/ADS-B Exchange
-41. **Multi-provider data system** (fallback if Trino is unavailable)
-42. **Retry/backoff strategy** for Trino queries
-43. **Diff between two simulation runs**
-44. **REST API** to drive the simulation externally
-45. **Mobile companion view**
-46. **Voice announcements** (text-to-speech) for events
-47. **Console display i18n**
-48. **Docker packaging**
-49. **One-click installer**
-50. **Save/resume session** between two launches
-51. **Speed change undo/redo**
-52. **Plugin system** for custom renderers
-53. **Automated versioning and changelog**
-54. **Video/GIF generation** of a simulation
-55. **Overview mini-map**
-
-## Attribution
-
-This is a personal, non-commercial research/learning project using flight
-and aircraft data from [The OpenSky Network](https://opensky-network.org/).
-See [NOTICE.md](NOTICE.md) for the required citation and license scope.
+9. **Conflict detection** (vertical/horizontal separation)
+10. **Exclusion zones / simplified airspace**
+11. **Fast-forward to a specific event**
+12. **Local cache of Trino results**
+13. **"Dry-run" mode** — preview before import
+14. **Weather at flight time** (wind, temperature)
+15. **Remaining distance / ETA**
+16. **Interactive filtering/sorting in the display**
+17. **Aircraft detail view on selection**
+18. **Sound/visual notifications on events**
+19. **Typed centralized config** (dataclass/Pydantic)
+20. **"Replay" vs "live" mode**
+21. **Synchronized multi-screen replay**
+22. **"Replay bookmarks" system**
+23. **Emergency squawk detection** (7500/7600/7700)
+24. **Go-around detection**
+25. **Diversion detection**
+26. **Scheduled vs actual time comparison**
+27. **Delay propagation analysis**
+28. **Airport connection network graph**
+29. **Traffic density heatmap**
+30. **Seasonal traffic comparison**
+31. **Terrain/elevation map overlay**
+32. **Visual day/night cycle in the simulation**
+33. **Airspace class overlay**
+34. **Squawk code display per aircraft**
+35. **Aircraft photo** (Planespotters-like API)
+36. **Airline logo/livery**
+37. **ML-based delay prediction**
+38. **Fuel consumption estimation**
+39. **Cross-validation** with FlightRadar24/ADS-B Exchange
+40. **Multi-provider data system** (fallback if Trino is unavailable)
+41. **Retry/backoff strategy** for Trino queries
+42. **Diff between two simulation runs**
+43. **REST API** to drive the simulation externally
+44. **Mobile companion view**
+45. **Voice announcements** (text-to-speech) for events
+46. **Console display i18n**
+47. **Docker packaging**
+48. **One-click installer**
+49. **Save/resume session** between two launches
+50. **Speed change undo/redo**
+51. **Plugin system** for custom renderers
+52. **Automated versioning and changelog**
+53. **Video/GIF generation** of a simulation
+54. **Overview mini-map**

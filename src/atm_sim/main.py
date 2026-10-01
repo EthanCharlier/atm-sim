@@ -6,6 +6,7 @@
 import argparse
 import logging
 import sys
+from pathlib import Path
 from datetime import UTC, datetime
 
 from dotenv import load_dotenv
@@ -19,6 +20,7 @@ from atm_sim.services.airport_service import AirportService
 from atm_sim.services.opensky_service import OpenSkyService
 from atm_sim.services.simulation_service import SimulationService
 from atm_sim.services.aircraft_database_service import AircraftDatabaseService
+from atm_sim.services.config_loader_service import ConfigLoaderService
 
 # ============================================================================
 # LOGGER
@@ -42,6 +44,13 @@ def parse_utc_datetime(
 def parse_arguments() -> argparse.Namespace:
     """ """
     parser = argparse.ArgumentParser(description="ATM simulation from OpenSky historical data")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=None,
+        help="Path to a YAML or TOML config file providing defaults for any option above "
+        "(explicit CLI arguments always take precedence)",
+    )
     parser.add_argument(
         "--start",
         type=parse_utc_datetime,
@@ -151,6 +160,25 @@ def _configure_logging() -> None:
     )
 
 
+def _merge_config_into_args(
+    args: argparse.Namespace,
+    config: dict[str, object],
+) -> None:
+    """ """
+    for key, value in config.items():
+        if not hasattr(args, key):
+            logger.warning("Unknown config key ignored: %s", key)
+            continue
+
+        if getattr(args, key) is not None:
+            continue
+
+        if key in ("start", "end") and isinstance(value, str):
+            value = parse_utc_datetime(value)
+
+        setattr(args, key, value)
+
+
 def main() -> None:
     """ """
     _configure_logging()
@@ -164,6 +192,10 @@ def main() -> None:
     # ---
 
     try:
+        if args.config is not None:
+            config = ConfigLoaderService.load(args.config)
+            _merge_config_into_args(args, config)
+
         trino = Trino()
         airport_service = AirportService()
         aircraft_database_service = AircraftDatabaseService()

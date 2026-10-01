@@ -4,6 +4,7 @@
 # IMPORT
 # ============================================================================
 from datetime import datetime
+from pathlib import Path
 
 
 # ============================================================================
@@ -38,3 +39,15 @@ class AircraftDatabaseDownloadError(OSError):
     ) -> None:
         """ """
         super().__init__(f"Failed to download aircraft database from {url}")
+
+
+class ConfigFileError(ValueError):
+    """ """
+
+    def __init__(
+        self,
+        path: Path,
+        reason: str,
+    ) -> None:
+        """ """
+        super().__init__(f"Invalid config file {path}: {reason}")

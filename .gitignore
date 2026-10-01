@@ -1,18 +1,37 @@
+# Python
 __pycache__/
 *.py[cod]
-.idea/
-idea/
-.venv/
-venv/
 *.egg-info/
 dist/
 build/
+
+# Virtual environments
+.venv/
+venv/
+
+# IDE
+.idea/
+idea/
+
+# Testing & linting
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .coverage
 htmlcov/
+
+# Databases
 *.db
 *.sqlite3
+
+# Secrets
 .env
+
+# Logs
 *.log
+
+# Local config files
+config.yaml
+config.toml
+*.local.yaml
+*.local.toml
