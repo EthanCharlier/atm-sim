@@ -5,25 +5,28 @@
 # ============================================================================
 import logging
 import random
-from datetime import datetime
+from typing import TYPE_CHECKING
 
 import pandas as pd
-from pyopensky.trino import Trino
 from trino.exceptions import Error as TrinoError
 
 # CONSTANTS IMPORT
 from atm_sim.constants.constants import METERS_PER_FOOT, MIN_TRAJECTORY_POINTS, MS_TO_FT_PER_MIN, MS_TO_KMH
-from atm_sim.entities.aircraft_entity import AircraftEntity
 
 # ENTITIES IMPORT
+from atm_sim.entities.aircraft_entity import AircraftEntity
 from atm_sim.entities.airport_entity import AirportEntity
 from atm_sim.entities.flight_query_spec_entity import FlightQuerySpecEntity
 from atm_sim.entities.trajectory_entity import TrajectoryEntity
 from atm_sim.entities.trajectory_point_entity import TrajectoryPointEntity
 
-# SERVICES IMPORT
-from atm_sim.services.airport_service import AirportService
-from atm_sim.services.aircraft_database_service import AircraftDatabaseService
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from pyopensky.trino import Trino
+
+    from atm_sim.services.aircraft_database_service import AircraftDatabaseService
+    from atm_sim.services.airport_service import AirportService
 
 # ============================================================================
 # LOGGER
@@ -88,10 +91,7 @@ def _build_query_specs(
     if callsigns:
         return [FlightQuerySpecEntity(callsign=callsign) for callsign in callsigns]
 
-    if icao24s:
-        return [FlightQuerySpecEntity(icao24=icao24) for icao24 in icao24s]
-
-    return []
+    return [FlightQuerySpecEntity(icao24=icao24) for icao24 in icao24s] if icao24s else []
 
 
 # ============================================================================
@@ -111,7 +111,7 @@ class OpenSkyService:
         self.airport_service: AirportService = airport_service
         self.aircraft_database_service: AircraftDatabaseService = aircraft_database_service
 
-    def import_fleet_for_period(
+    def import_fleet_for_period(  # noqa: PLR0913, PLR0917 -- CLI selection/filter options passed through as-is
         self,
         begin: datetime,
         end: datetime,
@@ -246,7 +246,7 @@ class OpenSkyService:
                 callsign=query_spec.callsign,
                 icao24=query_spec.icao24,
             )
-        except (TrinoError, OSError):
+        except TrinoError, OSError:
             logger.exception("flightlist query failed for %s", vars(query_spec))
             return None
 
@@ -289,7 +289,7 @@ class OpenSkyService:
 
         try:
             history_df = self.trino.history(overall_begin, overall_end, icao24=icao24_list)
-        except (TrinoError, OSError):
+        except TrinoError, OSError:
             logger.exception("history query failed for %s", icao24_list)
             return None
 

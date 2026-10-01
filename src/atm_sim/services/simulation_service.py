@@ -6,6 +6,7 @@
 import logging
 import time
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 # CONSTANTS IMPORT
 from atm_sim.constants.constants import (
@@ -13,20 +14,19 @@ from atm_sim.constants.constants import (
     DEFAULT_MAX_FLIGHTS,
     DEFAULT_SPEED_INDEX,
     DEFAULT_TICK_SECONDS,
+    ENTER_KEY,
     IDLE_SLEEP_SECONDS,
     MIN_RENDER_INTERVAL_SECONDS,
     PAUSE_KEY,
     QUIT_KEY,
-    ENTER_KEY,
     SPEED_DOWN_KEY,
     SPEED_UP_KEY,
 )
 
 # ENTITIES IMPORT
-from atm_sim.entities.aircraft_entity import AircraftEntity
+from atm_sim.entities.aircraft_statistics_entity import AircraftStatisticsEntity
 from atm_sim.entities.clock_entity import SimClockEntity, resolve_speed_index
 from atm_sim.entities.simulation_engine_entity import SimulationEngineEntity
-from atm_sim.entities.aircraft_statistics_entity import AircraftStatisticsEntity
 from atm_sim.entities.simulation_statistics_entity import SimulationStatisticsEntity
 
 # ENUMS IMPORT
@@ -36,10 +36,13 @@ from atm_sim.enums.simulation_status_enum import SimulationStatusEnum
 from atm_sim.exceptions.exceptions import InvalidSimulationPeriodError, MultipleSelectionModesError
 
 # SERVICES IMPORT
-from atm_sim.services.airport_service import AirportService
 from atm_sim.services.console_renderer_service import ConsoleRendererService
 from atm_sim.services.keyboard_listener_service import KeyboardListenerService
-from atm_sim.services.opensky_service import OpenSkyService
+
+if TYPE_CHECKING:
+    from atm_sim.entities.aircraft_entity import AircraftEntity
+    from atm_sim.services.airport_service import AirportService
+    from atm_sim.services.opensky_service import OpenSkyService
 
 # ============================================================================
 # LOGGER
@@ -62,7 +65,7 @@ class SimulationService:
         self.opensky_service: OpenSkyService = opensky_service
         self.airport_service: AirportService = airport_service
 
-    def start(
+    def start(  # noqa: PLR0913, PLR0917 -- CLI selection/filter options passed through as-is
         self,
         airports: list[str] | None = None,
         origins: list[str] | None = None,
@@ -201,10 +204,7 @@ class SimulationService:
         if callsigns:
             return f"callsign(s) {' / '.join(callsigns)}"
 
-        if icao24s:
-            return f"aircraft {' / '.join(icao24s)}"
-
-        return DEFAULT_AIRPORT
+        return f"aircraft {' / '.join(icao24s)}" if icao24s else DEFAULT_AIRPORT
 
     def _airport_display_name(
         self,

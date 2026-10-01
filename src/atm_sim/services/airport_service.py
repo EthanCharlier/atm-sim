@@ -4,6 +4,7 @@
 # IMPORT
 # ============================================================================
 import logging
+
 import airportsdata
 
 # ENTITIES IMPORT

@@ -4,15 +4,19 @@
 # IMPORT
 # ============================================================================
 import bisect
+from typing import TYPE_CHECKING
 
 # CONSTANTS IMPORT
 from atm_sim.constants.constants import MIN_TRAJECTORY_POINTS
 
-# ENTITIES IMPORT
-from atm_sim.entities.trajectory_point_entity import TrajectoryPointEntity
+# EXCEPTIONS IMPORT
+from atm_sim.exceptions.exceptions import InsufficientTrajectoryPointsError
 
 # SERVICES IMPORT
 from atm_sim.services.navigation_service import NavigationService
+
+if TYPE_CHECKING:
+    from atm_sim.entities.trajectory_point_entity import TrajectoryPointEntity
 
 
 # ============================================================================
@@ -27,7 +31,7 @@ class TrajectoryEntity:
     ) -> None:
         """ """
         if len(points) < MIN_TRAJECTORY_POINTS:
-            raise ValueError("TrajectoryEntity requires at least 2 points")
+            raise InsufficientTrajectoryPointsError(MIN_TRAJECTORY_POINTS)
 
         self.points: list[TrajectoryPointEntity] = points
         self.start_time_seconds: float = points[0].time_offset_seconds

@@ -5,11 +5,14 @@
 # ============================================================================
 
 # ENTITIES IMPORT
-from atm_sim.entities.aircraft_entity import AircraftEntity
-from atm_sim.entities.clock_entity import SimClockEntity
 
 # ENUMS IMPORTS
-from atm_sim.enums.simulation_status_enum import SimulationStatusEnum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from atm_sim.entities.aircraft_entity import AircraftEntity
+    from atm_sim.entities.clock_entity import SimClockEntity
+    from atm_sim.enums.simulation_status_enum import SimulationStatusEnum
 
 
 # ============================================================================

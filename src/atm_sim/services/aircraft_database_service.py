@@ -18,7 +18,6 @@ from atm_sim.entities.aircraft_metadata_entity import AircraftMetadataEntity
 # EXCEPTIONS IMPORT
 from atm_sim.exceptions.exceptions import AircraftDatabaseDownloadError
 
-
 # ============================================================================
 # LOGGER
 # ============================================================================
@@ -72,7 +71,7 @@ class AircraftDatabaseService:
         AIRCRAFT_DATABASE_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            urllib.request.urlretrieve(AIRCRAFT_DATABASE_URL, AIRCRAFT_DATABASE_CACHE_PATH)
+            urllib.request.urlretrieve(AIRCRAFT_DATABASE_URL, AIRCRAFT_DATABASE_CACHE_PATH)  # noqa: S310 -- fixed internal URL constant, not user input
         except (urllib.error.URLError, OSError) as error:
             logger.exception("Failed to download aircraft database from %s", AIRCRAFT_DATABASE_URL)
             raise AircraftDatabaseDownloadError(AIRCRAFT_DATABASE_URL) from error

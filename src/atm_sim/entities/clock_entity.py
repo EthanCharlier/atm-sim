@@ -72,6 +72,7 @@ class SimClockEntity:
 
     def get_status(
         self,
+        *,
         is_complete: bool,
     ) -> SimulationStatusEnum:
         """ """

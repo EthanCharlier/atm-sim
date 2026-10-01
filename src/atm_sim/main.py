@@ -6,21 +6,21 @@
 import argparse
 import logging
 import sys
-from pathlib import Path
 from datetime import UTC, datetime
+from pathlib import Path
 
 from dotenv import load_dotenv
 from pyopensky.trino import Trino
 
 # CONSTANTS IMPORT
 from atm_sim.constants.constants import LOG_FILE_PATH
+from atm_sim.services.aircraft_database_service import AircraftDatabaseService
 
 # SERVICES IMPORT
 from atm_sim.services.airport_service import AirportService
+from atm_sim.services.config_loader_service import ConfigLoaderService
 from atm_sim.services.opensky_service import OpenSkyService
 from atm_sim.services.simulation_service import SimulationService
-from atm_sim.services.aircraft_database_service import AircraftDatabaseService
-from atm_sim.services.config_loader_service import ConfigLoaderService
 
 # ============================================================================
 # LOGGER
@@ -173,10 +173,8 @@ def _merge_config_into_args(
         if getattr(args, key) is not None:
             continue
 
-        if key in ("start", "end") and isinstance(value, str):
-            value = parse_utc_datetime(value)
-
-        setattr(args, key, value)
+        resolved_value = parse_utc_datetime(value) if key in ("start", "end") and isinstance(value, str) else value
+        setattr(args, key, resolved_value)
 
 
 def main() -> None:

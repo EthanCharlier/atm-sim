@@ -4,13 +4,15 @@
 # IMPORT
 # ============================================================================
 import tomllib
-from pathlib import Path
-from typing import Any
-import yaml
+from typing import TYPE_CHECKING, Any
 
+import yaml
 
 # EXCEPTIONS IMPORT
 from atm_sim.exceptions.exceptions import ConfigFileError
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 # ============================================================================

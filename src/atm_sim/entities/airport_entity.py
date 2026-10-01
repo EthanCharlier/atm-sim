@@ -7,7 +7,7 @@
 class AirportEntity:
     """ """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913, PLR0917 -- plain data container, one field per airport attribute
         self,
         icao: str,
         iata: str,

@@ -4,27 +4,29 @@
 # IMPORT
 # ============================================================================
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 # CONSTANTS IMPORT
 from atm_sim.constants.constants import (
     CLEAR_LINE,
+    CLEAR_SCREEN,
     COLOR_ARRIVED,
     COLOR_IN_FLIGHT,
     COLOR_RESET,
     COLOR_WAITING,
-    CLEAR_SCREEN,
     CURSOR_HOME,
     STATUS_COLORS,
     STATUS_SORT_ORDER,
 )
 
 # ENTITIES IMPORT
-from atm_sim.entities.simulation_engine_entity import SimulationEngineEntity
-from atm_sim.entities.simulation_statistics_entity import SimulationStatisticsEntity
-
 # ENUMS IMPORT
 from atm_sim.enums.aircraft_status_enum import AircraftStatusEnum
-from atm_sim.enums.simulation_status_enum import SimulationStatusEnum
+
+if TYPE_CHECKING:
+    from atm_sim.entities.simulation_engine_entity import SimulationEngineEntity
+    from atm_sim.entities.simulation_statistics_entity import SimulationStatisticsEntity
+    from atm_sim.enums.simulation_status_enum import SimulationStatusEnum
 
 
 # ============================================================================
@@ -70,13 +72,17 @@ class ConsoleRendererService:
         lines: list[str] = [
             f"OpenSky ATM Simulation — {airport_label}  |  speed x{engine.clock.speed_factor:g}  |  [{status.value}]",
             f"Simulated time: {current_utc:%Y-%m-%d %H:%M:%S} UTC  (t+{engine.clock.sim_time_elapsed:.0f}s)",
-            f"{COLOR_IN_FLIGHT}{counts[AircraftStatusEnum.IN_FLIGHT]} in flight{COLOR_RESET}  |  "
-            f"{COLOR_WAITING}{counts[AircraftStatusEnum.WAITING]} waiting{COLOR_RESET}  |  "
-            f"{COLOR_ARRIVED}{counts[AircraftStatusEnum.ARRIVED]} arrived{COLOR_RESET}  |  "
-            f"controls: [SPACE] pause  [+/-] speed  [ESC] quit",
+            (
+                f"{COLOR_IN_FLIGHT}{counts[AircraftStatusEnum.IN_FLIGHT]} in flight{COLOR_RESET}  |  "
+                f"{COLOR_WAITING}{counts[AircraftStatusEnum.WAITING]} waiting{COLOR_RESET}  |  "
+                f"{COLOR_ARRIVED}{counts[AircraftStatusEnum.ARRIVED]} arrived{COLOR_RESET}  |  "
+                f"controls: [SPACE] pause  [+/-] speed  [ESC] quit"
+            ),
             "",
-            f"{'CALLSIGN':<10} {'ORIGIN':<7} {'DEST':<7} {'TYPE':<6} {'STATUS':<11} {'PROGRESS':>8} {'LAT':>9} "
-            f"{'LON':>10} {'ALT (ft)':>9} {'SPEED (km/h)':>13} {'VRATE (ft/min)':>15}",
+            (
+                f"{'CALLSIGN':<10} {'ORIGIN':<7} {'DEST':<7} {'TYPE':<6} {'STATUS':<11} {'PROGRESS':>8} {'LAT':>9} "
+                f"{'LON':>10} {'ALT (ft)':>9} {'SPEED (km/h)':>13} {'VRATE (ft/min)':>15}"
+            ),
             "-" * 117,
         ]
 
@@ -108,15 +114,21 @@ class ConsoleRendererService:
         """ """
         lines: list[str] = [
             "",
-            f"OpenSky ATM Simulation summary — {airport_label} "
-            f"between {begin:%Y-%m-%d %H:%M:%S} and {end:%Y-%m-%d %H:%M:%S} UTC",
-            f"{statistics.total_flights} flight(s)  |  "
-            f"avg time simulated {statistics.average_duration_seconds:.0f}s  |  "
-            f"max altitude {statistics.max_altitude_ft:.0f} ft  |  "
-            f"max speed {statistics.max_ground_speed_kmh:.0f} km/h",
+            (
+                f"OpenSky ATM Simulation summary — {airport_label} "
+                f"between {begin:%Y-%m-%d %H:%M:%S} and {end:%Y-%m-%d %H:%M:%S} UTC"
+            ),
+            (
+                f"{statistics.total_flights} flight(s)  |  "
+                f"avg time simulated {statistics.average_duration_seconds:.0f}s  |  "
+                f"max altitude {statistics.max_altitude_ft:.0f} ft  |  "
+                f"max speed {statistics.max_ground_speed_kmh:.0f} km/h"
+            ),
             "",
-            f"{'CALLSIGN':<10} {'ORIGIN':<7} {'DEST':<7} {'TYPE':<6} {'STATUS':<11} {'PROGRESS':>8} "
-            f"{'DURATION':>10} {'MAX ALT (ft)':>13} {'MAX SPEED (km/h)':>17}",
+            (
+                f"{'CALLSIGN':<10} {'ORIGIN':<7} {'DEST':<7} {'TYPE':<6} {'STATUS':<11} {'PROGRESS':>8} "
+                f"{'DURATION':>10} {'MAX ALT (ft)':>13} {'MAX SPEED (km/h)':>17}"
+            ),
             "-" * 97,
         ]
 

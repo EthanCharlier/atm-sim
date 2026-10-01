@@ -3,8 +3,11 @@
 # ============================================================================
 # IMPORT
 # ============================================================================
-from datetime import datetime
-from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from datetime import datetime
+    from pathlib import Path
 
 
 # ============================================================================
@@ -51,3 +54,14 @@ class ConfigFileError(ValueError):
     ) -> None:
         """ """
         super().__init__(f"Invalid config file {path}: {reason}")
+
+
+class InsufficientTrajectoryPointsError(ValueError):
+    """ """
+
+    def __init__(
+        self,
+        minimum_points: int,
+    ) -> None:
+        """ """
+        super().__init__(f"TrajectoryEntity requires at least {minimum_points} points")

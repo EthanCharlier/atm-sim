@@ -3,14 +3,15 @@
 # ============================================================================
 # IMPORT
 # ============================================================================
-
-# ENTITIES IMPORT
-from atm_sim.entities.airport_entity import AirportEntity
-from atm_sim.entities.trajectory_entity import TrajectoryEntity
-from atm_sim.entities.aircraft_metadata_entity import AircraftMetadataEntity
+from typing import TYPE_CHECKING
 
 # ENUMS IMPORTS
 from atm_sim.enums.aircraft_status_enum import AircraftStatusEnum
+
+if TYPE_CHECKING:
+    from atm_sim.entities.aircraft_metadata_entity import AircraftMetadataEntity
+    from atm_sim.entities.airport_entity import AirportEntity
+    from atm_sim.entities.trajectory_entity import TrajectoryEntity
 
 
 # ============================================================================

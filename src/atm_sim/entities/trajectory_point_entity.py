@@ -9,6 +9,7 @@ class TrajectoryPointEntity:
 
     def __init__(
         self,
+        *,
         time_offset_seconds: float,
         lat: float,
         lon: float,

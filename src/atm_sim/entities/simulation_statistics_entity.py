@@ -5,7 +5,10 @@
 # ============================================================================
 
 # ENTITIES IMPORT
-from atm_sim.entities.aircraft_statistics_entity import AircraftStatisticsEntity
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from atm_sim.entities.aircraft_statistics_entity import AircraftStatisticsEntity
 
 
 # ============================================================================

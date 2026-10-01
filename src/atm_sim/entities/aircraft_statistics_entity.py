@@ -5,7 +5,10 @@
 # ============================================================================
 
 # ENUMS IMPORT
-from atm_sim.enums.aircraft_status_enum import AircraftStatusEnum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from atm_sim.enums.aircraft_status_enum import AircraftStatusEnum
 
 
 # ============================================================================
@@ -14,7 +17,7 @@ from atm_sim.enums.aircraft_status_enum import AircraftStatusEnum
 class AircraftStatisticsEntity:
     """ """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913, PLR0917 -- plain data container, one field per statistic
         self,
         callsign: str,
         origin_icao: str,
