@@ -129,11 +129,15 @@ src/atm_sim/
 - `ruff` (`select = ["ALL"]`, no rule ignored without a scoped justification)
 - `mypy --strict`
 - SonarCloud (analysis via GitHub Actions on every push/PR)
+- `pytest` unit tests — 100% coverage on all pure-logic entities and
+  services (`main.py`'s CLI wiring and platform-specific branches of
+  `KeyboardListenerService` are not covered)
 
 ```bash
 ruff check src
 ruff format src
 mypy src --strict
+pytest tests/ --cov=atm_sim --cov-report=term-missing
 ```
 
 ## Known limitations
@@ -160,6 +164,7 @@ These are data limitations, not bugs:
 - [x] Config file (YAML/TOML)
 - [x] Basic CI (SonarCloud + GitHub Actions)
 - [x] Logs redirected to a file
+- [x] Unit tests (pure-logic entities and services)
 
 ### Pending / to do
 
@@ -167,61 +172,58 @@ These are data limitations, not bugs:
    WebSocket server exposing simulation state in real time
 2. **Persistence (SQLite)** — save an imported fleet to replay it later
    without re-querying Trino
-3. **Unit tests** — `NavigationService` and `TrajectoryEntity` are the
-   simplest, most valuable candidates to cover first (also blocks the
-   SonarCloud Quality Gate, currently at 0% coverage)
-4. **Export simulation data** — dump each aircraft's trajectory to CSV/JSON
+3. **Export simulation data** — dump each aircraft's trajectory to CSV/JSON
    after import
-5. **Basic ATC** — give an in-flight instruction (heading/altitude change)
+4. **Basic ATC** — give an in-flight instruction (heading/altitude change)
    that deviates an aircraft from its real imported trajectory
-6. **Compare multiple days**
-7. **Basic anomaly detection**
-8. **Geographic filtering by area (bounding box)** — new selection mode via
+5. **Compare multiple days**
+6. **Basic anomaly detection**
+7. **Geographic filtering by area (bounding box)** — new selection mode via
    `Trino.history(bounds=...)`, pending validation of the input format
    (`--min-lat`/`--max-lat`/`--min-lon`/`--max-lon`)
-9. **Conflict detection** (vertical/horizontal separation)
-10. **Exclusion zones / simplified airspace**
-11. **Fast-forward to a specific event**
-12. **Local cache of Trino results**
-13. **"Dry-run" mode** — preview before import
-14. **Weather at flight time** (wind, temperature)
-15. **Remaining distance / ETA**
-16. **Interactive filtering/sorting in the display**
-17. **Aircraft detail view on selection**
-18. **Sound/visual notifications on events**
-19. **Typed centralized config** (dataclass/Pydantic)
-20. **"Replay" vs "live" mode**
-21. **Synchronized multi-screen replay**
-22. **"Replay bookmarks" system**
-23. **Emergency squawk detection** (7500/7600/7700)
-24. **Go-around detection**
-25. **Diversion detection**
-26. **Scheduled vs actual time comparison**
-27. **Delay propagation analysis**
-28. **Airport connection network graph**
-29. **Traffic density heatmap**
-30. **Seasonal traffic comparison**
-31. **Terrain/elevation map overlay**
-32. **Visual day/night cycle in the simulation**
-33. **Airspace class overlay**
-34. **Squawk code display per aircraft**
-35. **Aircraft photo** (Planespotters-like API)
-36. **Airline logo/livery**
-37. **ML-based delay prediction**
-38. **Fuel consumption estimation**
-39. **Cross-validation** with FlightRadar24/ADS-B Exchange
-40. **Multi-provider data system** (fallback if Trino is unavailable)
-41. **Retry/backoff strategy** for Trino queries
-42. **Diff between two simulation runs**
-43. **REST API** to drive the simulation externally
-44. **Mobile companion view**
-45. **Voice announcements** (text-to-speech) for events
-46. **Console display i18n**
-47. **Docker packaging**
-48. **One-click installer**
-49. **Save/resume session** between two launches
-50. **Speed change undo/redo**
-51. **Plugin system** for custom renderers
-52. **Automated versioning and changelog**
-53. **Video/GIF generation** of a simulation
-54. **Overview mini-map**
+8. **Conflict detection** (vertical/horizontal separation)
+9. **Exclusion zones / simplified airspace**
+10. **Fast-forward to a specific event**
+11. **Local cache of Trino results**
+12. **"Dry-run" mode** — preview before import
+13. **Weather at flight time** (wind, temperature)
+14. **Remaining distance / ETA**
+15. **Interactive filtering/sorting in the display**
+16. **Aircraft detail view on selection**
+17. **Sound/visual notifications on events**
+18. **Typed centralized config** (dataclass/Pydantic)
+19. **"Replay" vs "live" mode**
+20. **Synchronized multi-screen replay**
+21. **"Replay bookmarks" system**
+22. **Emergency squawk detection** (7500/7600/7700)
+23. **Go-around detection**
+24. **Diversion detection**
+25. **Scheduled vs actual time comparison**
+26. **Delay propagation analysis**
+27. **Airport connection network graph**
+28. **Traffic density heatmap**
+29. **Seasonal traffic comparison**
+30. **Terrain/elevation map overlay**
+31. **Visual day/night cycle in the simulation**
+32. **Airspace class overlay**
+33. **Squawk code display per aircraft**
+34. **Aircraft photo** (Planespotters-like API)
+35. **Airline logo/livery**
+36. **ML-based delay prediction**
+37. **Fuel consumption estimation**
+38. **Cross-validation** with FlightRadar24/ADS-B Exchange
+39. **Multi-provider data system** (fallback if Trino is unavailable)
+40. **Retry/backoff strategy** for Trino queries
+41. **Diff between two simulation runs**
+42. **REST API** to drive the simulation externally
+43. **Mobile companion view**
+44. **Voice announcements** (text-to-speech) for events
+45. **Console display i18n**
+46. **Docker packaging**
+47. **One-click installer**
+48. **Save/resume session** between two launches
+49. **Speed change undo/redo**
+50. **Plugin system** for custom renderers
+51. **Automated versioning and changelog**
+52. **Video/GIF generation** of a simulation
+53. **Overview mini-map**

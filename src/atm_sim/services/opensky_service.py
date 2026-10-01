@@ -246,7 +246,7 @@ class OpenSkyService:
                 callsign=query_spec.callsign,
                 icao24=query_spec.icao24,
             )
-        except TrinoError, OSError:
+        except (TrinoError, OSError):
             logger.exception("flightlist query failed for %s", vars(query_spec))
             return None
 
@@ -289,7 +289,7 @@ class OpenSkyService:
 
         try:
             history_df = self.trino.history(overall_begin, overall_end, icao24=icao24_list)
-        except TrinoError, OSError:
+        except (TrinoError, OSError):
             logger.exception("history query failed for %s", icao24_list)
             return None
 
