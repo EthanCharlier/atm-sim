@@ -46,6 +46,8 @@ def test_start_configures_terminal_and_stop_restores_it(monkeypatch: pytest.Monk
     import tty
 
     calls: list[str] = []
+    # noinspection PyUnresolvedReferences
+    monkeypatch.setattr(sys.stdin, "fileno", lambda: 0)
     monkeypatch.setattr(termios, "tcgetattr", lambda _fd: ["fake-settings"])
     monkeypatch.setattr(tty, "setcbreak", lambda _fd: calls.append("setcbreak"))
     monkeypatch.setattr(termios, "tcsetattr", lambda _fd, _when, _settings: calls.append("tcsetattr"))
